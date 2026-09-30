@@ -1,0 +1,40 @@
+# CPU-only setup. No NVIDIA/CUDA packages.
+# Target: Ubuntu, Python 3.12, x86-64.
+#
+# Why torch is pinned with "+cpu":
+#   The default torch wheel on PyPI for Linux is a CUDA build that pulls in
+#   nvidia-* packages. Pinning the exact "+cpu" build makes pip take it from
+#   the PyTorch CPU index. If that build is not available, pip fails instead
+#   of silently installing a CUDA build.
+#   2.11.0+cpu is confirmed on the CPU index for cp312 / manylinux x86-64.
+#   It is >= 2.10, which fixes CVE-2026-24747 in torch.load (relevant because
+#   the checkpoint is a pytorch_model.bin). To upgrade later, change it to a
+#   newer "X.Y.Z+cpu" listed at https://download.pytorch.org/whl/cpu/torch/
+#
+# Install (Ubuntu blocks pip outside a virtual env, so use one):
+#   sudo apt install python3.12-venv      # only if "python3 -m venv" fails
+#   python3 -m venv .venv
+#   source .venv/bin/activate
+#   pip install --upgrade pip
+#   pip install -r requirements.txt
+#
+# Check that no CUDA build slipped in (both should print "+cpu" / "None"):
+#   python -c "import torch; print(torch.__version__, torch.version.cuda)"
+
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
+torch==2.11.0+cpu
+
+# transformers v5 (APIs used here checked against the v5 source).
+# ModernBERT (the Ettin architecture) has been supported since 4.48.
+transformers>=5.17,<6
+
+# Minimums chosen to have Python 3.12 wheels.
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4
+
+# Training-curves PNG. 3.11.2 is the current release (Sep 2026) and has
+# Python 3.12 Linux wheels; 3.8 is the first version with them.
+matplotlib>=3.8
